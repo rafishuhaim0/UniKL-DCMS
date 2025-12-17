@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Campus, Programme, Course, ModeData, ModuleData, ActivityItem, User, UserRole, ViewState } from '../types';
-import { Check, ChevronLeft, Plus, Edit2, Trash2, X, Layers, AlertTriangle, Info, AlertCircle, Calendar as CalendarIcon, ChevronRight, Clock, Users, UserPlus, Shield, ArrowRightCircle, Filter } from 'lucide-react';
+import { Check, ChevronLeft, Plus, Edit2, Trash2, X, Layers, AlertTriangle, Info, AlertCircle, Calendar as CalendarIcon, ChevronRight, Clock, Users, UserPlus, Shield, ArrowRightCircle, Filter, ArrowRight } from 'lucide-react';
 import { ProgressBar } from './ProgressBar';
 
 interface AdminPanelProps {
@@ -25,6 +25,7 @@ interface ModalState {
     type: 'danger' | 'warning' | 'info' | 'success';
     dataSummary?: React.ReactNode;
     onConfirm?: () => void;
+    confirmLabel?: string; // New field to customize button text
 }
 
 const CAMPUS_PRESETS = [
@@ -344,7 +345,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const closeModal = () => setModal(prev => ({ ...prev, isOpen: false }));
   const showAlert = (title: string, message: string, type: 'danger' | 'warning' | 'info' | 'success' = 'warning') => { setModal({ isOpen: true, mode: 'alert', title, message, type }); };
-  const showConfirm = (title: string, message: string, type: 'danger' | 'warning' | 'info' | 'success', dataSummary: React.ReactNode, onConfirm: () => void) => { setModal({ isOpen: true, mode: 'confirm', title, message, type, dataSummary, onConfirm }); };
+  const showConfirm = (title: string, message: string, type: 'danger' | 'warning' | 'info' | 'success', dataSummary: React.ReactNode, onConfirm: () => void, confirmLabel?: string) => { setModal({ isOpen: true, mode: 'confirm', title, message, type, dataSummary, onConfirm, confirmLabel }); };
 
   const inputClass = "w-full p-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-unikl-orange focus:border-unikl-orange outline-none transition-all shadow-sm";
   const smallInputClass = "w-full p-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-unikl-orange outline-none text-center shadow-sm";
@@ -375,20 +376,89 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   // --- CRUD Handlers ---
   const handleSaveCampus = () => {
-        if (!isSuperAdmin) return;
-        if (!campusForm.name.trim()) return showAlert("Validation Error", "Campus Name cannot be empty.");
-        const isEdit = editingIndex !== null;
-        if (!isEdit && !campusForm.id.trim()) return showAlert("Validation Error", "Please enter a Campus ID.");
-        if (!isEdit && data.find(c => c.id.toLowerCase() === campusForm.id.toLowerCase().trim())) return showAlert("Duplicate Error", "This Campus ID already exists.");
-        
-        showConfirm(isEdit ? 'Update Campus' : 'Add Campus', isEdit ? `Rename ${data[editingIndex!].name} to ${campusForm.name}?` : 'Are you sure you want to add this new campus?', 'info', null, () => {
+    if (!isSuperAdmin) return;
+    if (!campusForm.name.trim()) return showAlert("Validation Error", "Campus Name cannot be empty.");
+    const isEdit = editingIndex !== null;
+    if (!isEdit && !campusForm.id.trim()) return showAlert("Validation Error", "Please enter a Campus ID.");
+    if (!isEdit && data.find(c => c.id.toLowerCase() === campusForm.id.toLowerCase().trim())) return showAlert("Duplicate Error", "This Campus ID already exists.");
+    
+    showConfirm(
+        isEdit ? 'Update Campus' : 'Add Campus', 
+        isEdit ? `Rename ${data[editingIndex!].name} to ${campusForm.name}?` : 'Are you sure you want to add this new campus?', 
+        'info', 
+        null, 
+        () => {
             const newData = [...data];
             const campusId = isEdit ? newData[editingIndex!].id : campusForm.id.toLowerCase().replace(/\s/g, '');
-            if (isEdit) { newData[editingIndex!] = { ...newData[editingIndex!], name: campusForm.name }; onLogActivity(`Renamed campus ${newData[editingIndex!].id} to ${campusForm.name}`, 'update', 'mode_breakdown', { selectedCampusId: campusId }); }
-            else { const newCampus: Campus = { id: campusId, name: campusForm.name, totalCourses: 0, completedCourses: 0, modes: { odl: { count: 0, completed: 0, programmes: [] } } }; newData.push(newCampus); onLogActivity(`Created new campus: ${newCampus.name}`, 'create', 'mode_breakdown', { selectedCampusId: campusId }); }
-            onUpdateData(newData); setIsAdding(false); setEditingIndex(null); setCampusForm({ id: '', name: '' }); closeModal();
-        });
+            if (isEdit) { 
+                newData[editingIndex!] = { ...newData[editingIndex!], name: campusForm.name }; 
+                onLogActivity(`Renamed campus ${newData[editingIndex!].id} to ${campusForm.name}`, 'update', 'mode_breakdown', { selectedCampusId: campusId }); 
+            } else { 
+                const newCampus: Campus = { id: campusId, name: campusForm.name, totalCourses: 0, completedCourses: 0, modes: { odl: { count: 0, completed: 0, programmes: [] } } }; 
+                newData.push(newCampus); 
+                onLogActivity(`Created new campus: ${newCampus.name}`, 'create', 'mode_breakdown', { selectedCampusId: campusId }); 
+            }
+            onUpdateData(newData); 
+            setIsAdding(false); 
+            setEditingIndex(null); 
+            setCampusForm({ id: '', name: '' });
+            
+            // Chain: Automatic User Creation Prompt (Only for New Campus)
+            if (!isEdit && onUpdateUsers && users) {
+                const proposedUsername = `${campusId}_admin`;
+                
+                // If user already exists, just close modal
+                if (users.find(u => u.username === proposedUsername)) {
+                    closeModal();
+                    return;
+                }
+
+                // Immediately switch to the second modal without closing (replace state)
+                setModal({
+                    isOpen: true,
+                    mode: 'confirm',
+                    title: 'Create Campus Admin?',
+                    message: `Campus created successfully. Do you want to automatically generate an admin account for it?`,
+                    type: 'success',
+                    dataSummary: (
+                        <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg text-sm border border-gray-200 dark:border-gray-700 mt-2 space-y-1">
+                            <p><strong>Username:</strong> {proposedUsername}</p>
+                            <p><strong>Password:</strong> admin123</p>
+                            <p><strong>Role:</strong> Campus Admin</p>
+                        </div>
+                    ),
+                    onConfirm: () => {
+                        const newUser: User = {
+                            username: proposedUsername,
+                            password: 'admin123',
+                            role: 'campus_admin',
+                            assignedCampusId: campusId
+                        };
+                        onUpdateUsers([...users, newUser]);
+                        onLogActivity(`Auto-created admin user: ${newUser.username}`, 'create');
+                        
+                        // Chain: Prompt to go to User Management
+                        setModal({
+                            isOpen: true,
+                            mode: 'confirm',
+                            title: 'User Created',
+                            message: `Admin user '${proposedUsername}' has been created successfully. Would you like to view it in User Management?`,
+                            type: 'success',
+                            confirmLabel: 'Go to User Management',
+                            onConfirm: () => {
+                                setActiveTab('users');
+                                closeModal();
+                            }
+                        });
+                    }
+                });
+            } else {
+                closeModal();
+            }
+        }
+    );
   };
+
   const handleDeleteCampus = (idx: number) => { const campus = data[idx]; showConfirm('Delete Campus', `Are you sure you want to delete ${campus.name}?`, 'danger', <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-2 rounded"><strong>Warning:</strong> All data associated with this campus (Modes, Programmes, Courses) will be permanently lost.</div>, () => { const newData = [...data]; newData.splice(idx, 1); if (campus.id === selectedCampusId) setSelectedCampusId(newData.length > 0 ? newData[0].id : ''); onUpdateData(newData); onLogActivity(`Deleted campus: ${campus.name}`, 'delete'); closeModal(); }); };
   const handleManageModes = (campusId: string) => { setSelectedCampusForModes(campusId); setCampusViewMode('modes'); setIsAdding(false); setEditingKey(null); };
   
@@ -533,7 +603,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
         );
     }
-
+    
+    // ... (rest of renderContentTab: Programme List & Main Content Tab)
+    
+    // ... (Programme List View) ...
     if (selectedProgrammeIndex !== null) {
         // ... (Course List View - Unchanged)
         const prog = currentCampus.modes[selectedMode].programmes![selectedProgrammeIndex];
@@ -863,7 +936,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     {modal.dataSummary && <div className="mb-6 w-full text-left">{modal.dataSummary}</div>}
                     <div className="flex gap-3 w-full">
                         {modal.mode === 'confirm' && (<button onClick={closeModal} className="flex-1 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">Cancel</button>)}
-                        <button onClick={modal.onConfirm || closeModal} className={`flex-1 py-3 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95 ${modal.type === 'danger' ? 'bg-red-600 hover:bg-red-700 shadow-red-200 dark:shadow-none' : 'bg-unikl-orange hover:bg-orange-600 shadow-orange-200 dark:shadow-none'}`}>{modal.mode === 'confirm' ? 'Confirm' : 'Okay'}</button>
+                        <button onClick={modal.onConfirm || closeModal} className={`flex-1 py-3 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95 ${modal.type === 'danger' ? 'bg-red-600 hover:bg-red-700 shadow-red-200 dark:shadow-none' : 'bg-unikl-orange hover:bg-orange-600 shadow-orange-200 dark:shadow-none'}`}>
+                            {modal.confirmLabel ? modal.confirmLabel : (modal.mode === 'confirm' ? 'Confirm' : 'Okay')}
+                        </button>
                     </div>
                 </div>
             </div>

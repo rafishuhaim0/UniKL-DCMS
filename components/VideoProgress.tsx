@@ -2,7 +2,7 @@
 import React from 'react';
 import { Course, ModuleData, Programme } from '../types';
 import { ProgressBar } from './ProgressBar';
-import { Layers, User, Calendar, CheckCircle, Clock, AlertCircle, Info, Monitor, FileVideo, Hash, Check } from 'lucide-react';
+import { Layers, User, Calendar, CheckCircle, Clock, AlertCircle, Info, Monitor, FileVideo, Hash, Check, Edit2, Trash2, ArrowRight } from 'lucide-react';
 
 interface VideoProgressProps {
   course: Course;
@@ -186,80 +186,94 @@ export const VideoProgress: React.FC<VideoProgressProps> = ({ course, program })
             </div>
       </div>
 
-      {/* 4. Task List Table (Card Style) */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <CheckCircle className="text-green-600 dark:text-green-400" size={18} />
-                Daily/Weekly Production Log
-            </h3>
+      {/* 4. Task List Table - UPDATED: CSS Grid Layout (Card Style) */}
+      <div className="space-y-4">
+        {/* Header Row (Visible on Large Screens) */}
+        <div className="hidden lg:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider items-center border border-gray-200 dark:border-gray-700">
+            <div className="col-span-1">No</div>
+            <div className="col-span-3">Task</div>
+            <div className="col-span-2 text-center">Status</div>
+            <div className="col-span-2 text-center">Timeline</div>
+            <div className="col-span-1 text-center">Days</div>
+            <div className="col-span-3">Remark</div>
         </div>
-        
-        <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-100 dark:divide-gray-700">
-                <thead className="bg-white dark:bg-gray-800">
-                    <tr>
-                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider w-16">No</th>
-                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Task</th>
-                        <th className="px-6 py-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
-                        <th className="px-6 py-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Timeline</th>
-                        <th className="px-6 py-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Days Taken</th>
-                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Remark</th>
-                    </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
-                    {categories.map((cat) => (
-                        <React.Fragment key={cat.id}>
-                            {/* Category Header Row */}
-                            <tr className="bg-gray-50/80 dark:bg-gray-800/80">
-                                <td colSpan={6} className="px-6 py-2.5">
-                                    <div className="flex items-center gap-2 text-xs font-extrabold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                        <cat.icon size={14} className="text-unikl-blue dark:text-blue-400" />
-                                        {cat.label}
-                                    </div>
-                                </td>
-                            </tr>
-                            {cat.modules.map((module, idx) => {
-                                const daysTaken = calculateDaysTaken(module.actual, module.finishDate);
-                                const isDone = module.status === 'Done';
-                                return (
-                                    <tr key={`${cat.id}-${idx}`} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group/row">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400 font-mono">{idx + 1}</td>
-                                        <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{module.subject}</td>
-                                        <td className="px-6 py-4 text-center">
-                                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${isDone ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800' : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800'}`}>
-                                                {isDone && <Check size={10} strokeWidth={4} />}
-                                                {module.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <div className="flex flex-col items-center text-xs">
-                                                <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300">
-                                                    <span className="w-10 text-right font-mono">{module.actual}</span>
-                                                    <span className="text-gray-300 dark:text-gray-600">→</span>
-                                                    <span className="w-10 text-left font-mono">{module.finishDate || '...'}</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                             <span className={`inline-block font-mono text-xs font-bold px-2 py-0.5 rounded ${daysTaken !== '-' ? 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200' : 'text-gray-300'}`}>
-                                                {daysTaken !== '-' ? `${daysTaken} Days` : '-'}
-                                             </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 italic">
-                                            {module.remark || <span className="text-gray-300 dark:text-gray-600">-</span>}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </React.Fragment>
-                    ))}
-                    {course.modules.length === 0 && (
-                        <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-400 italic">No tasks added for this course yet.</td></tr>
-                    )}
-                </tbody>
-            </table>
-        </div>
+
+        {categories.map((cat) => (
+            <React.Fragment key={cat.id}>
+                {/* Category Separator */}
+                <div className="flex items-center gap-2 px-2 py-3 mt-4 text-xs font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
+                    <cat.icon size={14} className="text-unikl-blue dark:text-blue-400" />
+                    {cat.label}
+                </div>
+                
+                {cat.modules.map((module, idx) => {
+                    const daysTaken = calculateDaysTaken(module.actual, module.finishDate);
+                    const isDone = module.status === 'Done';
+                    
+                    // Visual Sequential Numbering: Resetting per category (index within current category list + 1)
+                    const visualIndex = idx + 1;
+
+                    return (
+                        <div key={`${cat.id}-${idx}`} className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 group/row">
+                            
+                            {/* No */}
+                            <div className="lg:col-span-1 flex lg:block items-center gap-2">
+                                <span className="lg:hidden text-xs font-bold text-gray-400 uppercase w-20">No:</span>
+                                <span className="text-sm font-mono text-gray-400">{visualIndex}</span>
+                            </div>
+
+                            {/* Task */}
+                            <div className="lg:col-span-3 flex lg:block items-center gap-2">
+                                <span className="lg:hidden text-xs font-bold text-gray-400 uppercase w-20">Task:</span>
+                                <span className="text-sm font-medium text-gray-900 dark:text-white leading-tight">{module.subject}</span>
+                            </div>
+
+                            {/* Status */}
+                            <div className="lg:col-span-2 flex lg:justify-center items-center gap-2">
+                                <span className="lg:hidden text-xs font-bold text-gray-400 uppercase w-20">Status:</span>
+                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${isDone ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800' : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800'}`}>
+                                    {isDone && <Check size={10} strokeWidth={4} />}
+                                    {module.status}
+                                </span>
+                            </div>
+
+                            {/* Timeline */}
+                            <div className="lg:col-span-2 flex lg:justify-center items-center gap-2">
+                                <span className="lg:hidden text-xs font-bold text-gray-400 uppercase w-20">Dates:</span>
+                                <div className="flex items-center gap-2 text-xs font-mono bg-gray-50 dark:bg-gray-700/50 px-2 py-1 rounded border border-gray-100 dark:border-gray-700">
+                                    <span className="text-gray-600 dark:text-gray-300">{module.actual || '-'}</span>
+                                    <ArrowRight size={10} className="text-gray-300 dark:text-gray-500" />
+                                    <span className="text-gray-600 dark:text-gray-300">{module.finishDate || '...'}</span>
+                                </div>
+                            </div>
+
+                            {/* Days Taken */}
+                            <div className="lg:col-span-1 flex lg:justify-center items-center gap-2">
+                                <span className="lg:hidden text-xs font-bold text-gray-400 uppercase w-20">Duration:</span>
+                                <span className={`inline-block font-mono text-xs font-bold px-2 py-0.5 rounded ${daysTaken !== '-' ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200' : 'text-gray-300 dark:text-gray-600'}`}>
+                                    {daysTaken !== '-' ? `${daysTaken}d` : '-'}
+                                </span>
+                            </div>
+
+                            {/* Remark */}
+                            <div className="lg:col-span-3 flex lg:block items-center gap-2">
+                                <span className="lg:hidden text-xs font-bold text-gray-400 uppercase w-20 shrink-0">Remark:</span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400 italic truncate block">
+                                    {module.remark || <span className="text-gray-300 dark:text-gray-600">-</span>}
+                                </span>
+                            </div>
+
+                        </div>
+                    );
+                })}
+            </React.Fragment>
+        ))}
+
+        {course.modules.length === 0 && (
+             <div className="p-12 text-center bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 text-gray-400">
+                <p>No tasks found for this course yet.</p>
+             </div>
+        )}
       </div>
     </div>
   );

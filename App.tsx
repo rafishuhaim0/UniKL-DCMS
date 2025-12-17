@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { APP_DATA as INITIAL_APP_DATA, UNIVERSITY_STATS, INITIAL_ACTIVITIES, INITIAL_USERS } from './constants';
+import { UNIVERSITY_STATS } from './constants';
+import { database } from './database'; // Import the database service
 import { AppState, ViewState, Campus, ActivityItem, User } from './types';
 import { Breadcrumb } from './components/Breadcrumb';
-import { ProgressBar } from './components/ProgressBar';
 import { CampusOverview } from './components/CampusOverview';
 import { ModeBreakdown } from './components/ModeBreakdown';
 import { ProgramList } from './components/ProgramList';
@@ -12,17 +12,15 @@ import { VideoProgress } from './components/VideoProgress';
 import { UniversityDashboard } from './components/UniversityDashboard';
 import { Login } from './components/Login';
 import { AdminPanel } from './components/AdminPanel';
-import { ActivityBoard } from './components/ActivityBoard';
-import { Settings, ChevronLeft, Moon, Sun, Lock, LogOut, AlertTriangle, Megaphone, X, AlertCircle, Home } from 'lucide-react';
-import { Sidebar } from './components/Sidebar'; // Ensure Sidebar is imported
-import { ToastContainer, ToastMessage } from './components/Toast'; // Ensure Toast is imported
+import { Sidebar } from './components/Sidebar';
+import { ToastContainer, ToastMessage } from './components/Toast';
+import { Megaphone, ChevronLeft, Home, LogOut } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [appData, setAppData] = useState<Campus[]>(INITIAL_APP_DATA);
-  const [activities, setActivities] = useState<ActivityItem[]>(INITIAL_ACTIVITIES);
-  
-  // Lift User State
-  const [users, setUsers] = useState<User[]>(INITIAL_USERS);
+  // Initialize state directly from Database (LocalStorage)
+  const [appData, setAppData] = useState<Campus[]>(() => database.campuses.getAll());
+  const [activities, setActivities] = useState<ActivityItem[]>(() => database.activities.getAll());
+  const [users, setUsers] = useState<User[]>(() => database.users.getAll());
 
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
@@ -58,6 +56,17 @@ const App: React.FC = () => {
   }, [isDarkMode]);
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
+
+  // Wrappers to persist data when updating state
+  const handleUpdateAppData = (newData: Campus[]) => {
+      setAppData(newData);
+      database.campuses.save(newData);
+  };
+
+  const handleUpdateUsers = (newUsers: User[]) => {
+      setUsers(newUsers);
+      database.users.save(newUsers);
+  };
 
   // Toast Helper
   const addToast = (message: string, type: ToastMessage['type'] = 'info') => {
@@ -96,19 +105,27 @@ const App: React.FC = () => {
           targetView,
           targetParams
       };
-      setActivities(prev => [newActivity, ...prev]);
+      
+      // Update State and Persist
+      const updatedActivities = [newActivity, ...activities];
+      setActivities(updatedActivities);
+      database.activities.save(updatedActivities);
 
       const toastType = type === 'delete' ? 'error' : (type === 'create' || type === 'update' ? 'success' : 'announcement');
       addToast(message, toastType);
   };
 
   const handleDeleteActivity = (id: string) => {
-    setActivities(prev => prev.filter(a => a.id !== id));
+    const updated = activities.filter(a => a.id !== id);
+    setActivities(updated);
+    database.activities.save(updated);
     addToast('Activity log removed', 'info');
   };
 
   const handleUpdateActivity = (id: string, message: string) => {
-    setActivities(prev => prev.map(a => a.id === id ? { ...a, message } : a));
+    const updated = activities.map(a => a.id === id ? { ...a, message } : a);
+    setActivities(updated);
+    database.activities.save(updated);
     addToast('Activity log updated', 'success');
   };
 
@@ -214,10 +231,6 @@ const App: React.FC = () => {
 
   const { program, course } = getCurrentData();
 
-  const globalProgress = currentCampus 
-    ? Math.round((currentCampus.completedCourses / currentCampus.totalCourses) * 100)
-    : Math.round((UNIVERSITY_STATS.completedCourses / UNIVERSITY_STATS.totalCourses) * 100);
-
   const handleBack = () => {
       if (state.currentView === 'video_progress') handleNavigate('course_list', { selectedProgramName: state.selectedProgramName });
       else if (state.currentView === 'course_list') handleNavigate('program_list', { selectedMode: state.selectedMode });
@@ -243,6 +256,66 @@ const App: React.FC = () => {
         </div>
       )}
 
+      {/* Announcement Modal Overlay */}
+      {(isPostingAnnouncement || showPostConfirmation) && (
+          <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                  <div className="px-6 py-4 bg-orange-50 dark:bg-orange-900/20 border-b border-orange-100 dark:border-orange-800/50 flex items-center gap-3">
+                      <div className="p-2 bg-orange-100 dark:bg-orange-800 rounded-full text-orange-600 dark:text-orange-200"><Megaphone size={20} /></div>
+                      <h3 className="font-bold text-lg text-gray-900 dark:text-white">Post New Announcement</h3>
+                  </div>
+                  
+                  <div className="p-6">
+                      {!showPostConfirmation ? (
+                          <>
+                              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Announcement Message</label>
+                              <textarea 
+                                  value={announcementText}
+                                  onChange={(e) => setAnnouncementText(e.target.value)}
+                                  className="w-full h-32 p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-unikl-orange focus:border-unikl-orange outline-none resize-none"
+                                  placeholder="Type your announcement here..."
+                                  autoFocus
+                              />
+                              <p className="text-xs text-gray-400 mt-2 text-right">{announcementText.length} chars</p>
+                          </>
+                      ) : (
+                          <div className="text-center">
+                              <p className="text-gray-600 dark:text-gray-300 mb-4">Are you sure you want to post this announcement?</p>
+                              <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700 text-sm font-medium italic text-gray-700 dark:text-gray-200">
+                                  "{announcementText}"
+                              </div>
+                          </div>
+                      )}
+                  </div>
+
+                  <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3">
+                      <button 
+                          onClick={() => { setIsPostingAnnouncement(false); setShowPostConfirmation(false); }} 
+                          className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg font-medium text-sm transition-colors"
+                      >
+                          Cancel
+                      </button>
+                      {!showPostConfirmation ? (
+                          <button 
+                              onClick={handlePostConfirmationClick}
+                              disabled={!announcementText.trim()}
+                              className="px-4 py-2 bg-unikl-orange hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold text-sm shadow-sm transition-colors"
+                          >
+                              Next
+                          </button>
+                      ) : (
+                          <button 
+                              onClick={submitAnnouncement} 
+                              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-sm shadow-sm transition-colors"
+                          >
+                              Post Announcement
+                          </button>
+                      )}
+                  </div>
+              </div>
+          </div>
+      )}
+
       <Sidebar 
         isDarkMode={isDarkMode}
         toggleTheme={toggleTheme}
@@ -263,10 +336,9 @@ const App: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
         
-        {/* Modals and Overlays (Same as before) */}
+        {/* Modals and Overlays */}
         {showLogoutConfirmation && (
             <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-                {/* ... Logout Modal Content ... */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-sm border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden">
                      <div className="px-6 py-4 bg-red-50 dark:bg-red-900/20 border-b border-red-100 dark:border-red-800/50 flex items-center gap-3">
                          <div className="p-2 bg-red-100 dark:bg-red-800 rounded-full text-red-600 dark:text-red-200"><LogOut size={20} /></div>
@@ -325,7 +397,15 @@ const App: React.FC = () => {
                         <div className="max-w-md mx-auto mt-10"><Login onLogin={handleLogin} onCancel={() => handleNavigate('university_dashboard')} users={users} /></div>
                     )}
                     {state.currentView === 'admin_panel' && (
-                        <AdminPanel data={appData} onUpdateData={setAppData} onLogActivity={handleLogActivity} onRequestDiscard={handleRequestDiscard} currentUser={state.currentUser} users={users} onUpdateUsers={setUsers} />
+                        <AdminPanel 
+                            data={appData} 
+                            onUpdateData={handleUpdateAppData} 
+                            onLogActivity={handleLogActivity} 
+                            onRequestDiscard={handleRequestDiscard} 
+                            currentUser={state.currentUser} 
+                            users={users} 
+                            onUpdateUsers={handleUpdateUsers} 
+                        />
                     )}
 
                     {/* Mode Breakdown View */}
@@ -347,7 +427,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Black Footer - Fixed at bottom of main content area, outside scroll */}
-        <footer className="bg-gray-900 text-white py-4 px-6 text-center text-xs shrink-0 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <footer className="bg-unikl-blue text-white py-4 px-6 text-center text-xs shrink-0 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
                 <p>&copy; 2025 UniKL DCMS. All Rights Reserved.</p>
                 <p className="opacity-70">Developed by Rafiq Shuhaimi | v2.1.0</p>
