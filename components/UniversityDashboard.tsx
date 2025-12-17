@@ -304,11 +304,11 @@ export const UniversityDashboard: React.FC<UniversityDashboardProps> = ({ data, 
                 </div>
             </div>
             <h3 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-1">{totalProgrammes}</h3>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
                 Total Programmes
                 <InteractiveTooltip content={
                     <div className="space-y-1">
-                        <p className="font-bold border-b border-gray-600 pb-1 mb-1">Breakdown by Campus</p>
+                        <div className="font-bold border-b border-gray-600 pb-1 mb-1">Breakdown by Campus</div>
                         {data.map(c => {
                             const count = (Object.values(c.modes) as ModeData[]).reduce((s, m) => s + (m.programmes?.length || 0), 0);
                             if (count === 0) return null;
@@ -316,7 +316,7 @@ export const UniversityDashboard: React.FC<UniversityDashboardProps> = ({ data, 
                         })}
                     </div>
                 } />
-            </p>
+            </div>
         </div>
 
         {/* Completed Courses */}
@@ -328,24 +328,24 @@ export const UniversityDashboard: React.FC<UniversityDashboardProps> = ({ data, 
                 </div>
             </div>
             <h3 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-1">{completedCourses}</h3>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
                 Courses Completed
                 <InteractiveTooltip content={
                     <div className="space-y-1">
-                        <p className="font-bold border-b border-gray-600 pb-1 mb-1">Top Performers</p>
+                        <div className="font-bold border-b border-gray-600 pb-1 mb-1">Top Performers</div>
                         {data.slice().sort((a,b) => b.completedCourses - a.completedCourses).slice(0, 3).map(c => (
                             <div key={c.id} className="flex justify-between gap-4"><span>{c.name}</span><span className="font-bold">{c.completedCourses}</span></div>
                         ))}
                     </div>
                 } />
-            </p>
+            </div>
         </div>
 
         {/* Overall Progress */}
         <div className="relative group bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300">
             <div className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-2xl bg-indigo-500"></div>
             <div className="flex justify-between items-start mb-4">
-                <div className="p-2.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                <div className="p-2.5 bg-indigo-50 dark:bg-blue-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
                     <TrendingUp size={20} />
                 </div>
             </div>
@@ -356,10 +356,10 @@ export const UniversityDashboard: React.FC<UniversityDashboardProps> = ({ data, 
             <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
                 <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${progressPercentage}%` }}></div>
             </div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1 mt-2">
+            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1 mt-2">
                 Overall Progress
                 <InteractiveTooltip content="Weighted average based on total completed digital courses across all campuses and modes." />
-            </p>
+            </div>
         </div>
 
         {/* Total Campuses */}
@@ -371,17 +371,17 @@ export const UniversityDashboard: React.FC<UniversityDashboardProps> = ({ data, 
                 </div>
             </div>
             <h3 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-1">{totalCampuses}</h3>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
                 Active Campuses
                 <InteractiveTooltip content={
                     <div className="space-y-1">
-                        <p className="font-bold border-b border-gray-600 pb-1 mb-1">Participating Locations</p>
+                        <div className="font-bold border-b border-gray-600 pb-1 mb-1">Participating Locations</div>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                             {data.map(c => <span key={c.id} className="whitespace-nowrap">{c.name}</span>)}
                         </div>
                     </div>
                 } />
-            </p>
+            </div>
         </div>
       </div>
 
@@ -395,7 +395,7 @@ export const UniversityDashboard: React.FC<UniversityDashboardProps> = ({ data, 
              <h3 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2">
                 Programme Modes
              </h3>
-             <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Distribution across university</p>
+             <div className="text-xs font-medium text-gray-500 dark:text-gray-400">Distribution across university</div>
           </div>
 
           <div className="flex-1 flex flex-col items-center justify-center">
@@ -426,7 +426,7 @@ export const UniversityDashboard: React.FC<UniversityDashboardProps> = ({ data, 
              <div className="mb-6 pl-2 flex justify-between items-end">
                 <div>
                     <h3 className="text-xl font-black text-gray-900 dark:text-white">Mode Distribution by Campus</h3>
-                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Detailed breakdown per location</p>
+                    <div className="text-xs font-medium text-gray-500 dark:text-gray-400">Detailed breakdown per location</div>
                 </div>
              </div>
              

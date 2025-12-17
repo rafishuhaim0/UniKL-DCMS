@@ -276,11 +276,11 @@ const App: React.FC = () => {
                                   placeholder="Type your announcement here..."
                                   autoFocus
                               />
-                              <p className="text-xs text-gray-400 mt-2 text-right">{announcementText.length} chars</p>
+                              <div className="text-xs text-gray-400 mt-2 text-right">{announcementText.length} chars</div>
                           </>
                       ) : (
                           <div className="text-center">
-                              <p className="text-gray-600 dark:text-gray-300 mb-4">Are you sure you want to post this announcement?</p>
+                              <div className="text-gray-600 dark:text-gray-300 mb-4">Are you sure you want to post this announcement?</div>
                               <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700 text-sm font-medium italic text-gray-700 dark:text-gray-200">
                                   "{announcementText}"
                               </div>
@@ -344,7 +344,7 @@ const App: React.FC = () => {
                          <div className="p-2 bg-red-100 dark:bg-red-800 rounded-full text-red-600 dark:text-red-200"><LogOut size={20} /></div>
                          <h3 className="font-bold text-lg text-gray-900 dark:text-white">Confirm Logout</h3>
                      </div>
-                     <div className="p-6"><p className="text-gray-600 dark:text-gray-300 text-sm">Are you sure you want to end your session?</p></div>
+                     <div className="p-6"><div className="text-gray-600 dark:text-gray-300 text-sm">Are you sure you want to end your session?</div></div>
                      <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3">
                          <button onClick={handleLogoutCancel} className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg font-medium text-sm transition-colors">Cancel</button>
                          <button onClick={handleLogoutConfirm} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-sm shadow-sm transition-colors">Yes, Logout</button>
@@ -427,10 +427,10 @@ const App: React.FC = () => {
         </div>
 
         {/* Black Footer - Fixed at bottom of main content area, outside scroll */}
-        <footer className="bg-unikl-blue text-white py-4 px-6 text-center text-xs shrink-0 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <footer className="bg-black text-white py-4 px-6 text-center text-xs shrink-0 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
                 <p>&copy; 2025 UniKL DCMS. All Rights Reserved.</p>
-                <p className="opacity-70">Developed by Rafiq Shuhaimi | v2.1.0</p>
+                <div className="opacity-70">Developed by Rafiq Shuhaimi | v2.1.0</div>
             </div>
         </footer>
 

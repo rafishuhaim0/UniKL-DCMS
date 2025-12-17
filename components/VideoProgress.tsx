@@ -101,11 +101,11 @@ export const VideoProgress: React.FC<VideoProgressProps> = ({ course, program })
                 <h3 className="text-lg font-bold text-indigo-900 dark:text-indigo-200 flex items-center gap-2">
                     <Layers size={20}/> Semester {course.semester || 1} Performance Context
                 </h3>
-                <p className="text-sm text-indigo-700 dark:text-indigo-300 mt-1 leading-relaxed">
+                <div className="text-sm text-indigo-700 dark:text-indigo-300 mt-1 leading-relaxed">
                     You are viewing the DCMS data for a specific course in Semester {course.semester || 1}. 
                     The bar on the right represents the <span className="font-bold">average completion</span> (SIM + E-Sim + Intro) across 
                     all <span className="font-bold underline decoration-dotted">{relevantCoursesCount} courses</span> in this semester.
-                </p>
+                </div>
            </div>
            <div className="w-full md:w-1/3 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-indigo-100 dark:border-indigo-700/50">
                 <div className="flex justify-between items-center mb-2">

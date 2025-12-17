@@ -193,9 +193,9 @@ export const ActivityBoard: React.FC<ActivityBoardProps> = ({
                 <>
                     <div className={`flex ${isSidebar ? 'flex-col gap-0.5' : 'justify-between items-start'}`}>
                         <div className="flex items-start gap-1">
-                            <p className={`font-medium leading-tight ${isSidebar ? 'text-xs break-words text-gray-800 drop-shadow-none' : 'text-sm text-gray-800 dark:text-gray-200'}`}>
+                            <div className={`font-medium leading-tight ${isSidebar ? 'text-xs break-words text-gray-800 drop-shadow-none' : 'text-sm text-gray-800 dark:text-gray-200'}`}>
                                 {item.message}
-                            </p>
+                            </div>
                             {item.targetView && isSidebar && (
                                 <ExternalLink size={10} className="text-gray-400 mt-0.5 shrink-0 opacity-0 group-hover/item:opacity-100 transition-opacity" />
                             )}
@@ -250,7 +250,7 @@ export const ActivityBoard: React.FC<ActivityBoardProps> = ({
                         <Trash2 size={32} />
                     </div>
                     <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-2">Delete Item?</h3>
-                    <p className="mb-6 text-gray-600 dark:text-gray-300 text-sm">Are you sure you want to remove this announcement?</p>
+                    <div className="mb-6 text-gray-600 dark:text-gray-300 text-sm">Are you sure you want to remove this announcement?</div>
                     <div className="flex gap-3 w-full">
                         <button 
                             onClick={cancelDelete} 
