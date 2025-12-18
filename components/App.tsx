@@ -347,7 +347,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Black Footer - Fixed at bottom of main content area, outside scroll */}
-        <footer className="bg-unikl-blue text-white py-4 px-6 text-center text-xs shrink-0 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <footer className="bg-black text-white py-4 px-6 text-center text-xs shrink-0 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
                 <p>&copy; 2025 UniKL DCMS. All Rights Reserved.</p>
                 <p className="opacity-70">Developed by Rafiq Shuhaimi | v2.1.0</p>
